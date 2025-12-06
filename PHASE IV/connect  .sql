@@ -1,0 +1,1 @@
+ALTER SESSION SET CONTAINER=Mon_26989_Claude_BusinessInteractionManager_DB;
