@@ -1,4 +1,4 @@
-# Data Dictionary (sample)
+# Data Dictionary 
 | Table | Column | Type | Constraints | Purpose |
 |-------|--------|------|-------------|---------|
 | CLIENTS | CLIENT_ID | NUMBER(10) | PK | Unique client ID |
