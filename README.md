@@ -28,7 +28,8 @@ Manual tracking of client interactions causes delays, missed follow-ups, and wea
 ## CREATE/INSERT scripts + data validation
 ### tables
 
- CLIENTS Table
+**CLIENTS Table**
+
 CREATE TABLE CLIENTS (
     client_id NUMBER(10) PRIMARY KEY,
     full_name VARCHAR2(100),
@@ -39,6 +40,7 @@ CREATE TABLE CLIENTS (
 );
 
 **STAFF Table**
+
 CREATE TABLE STAFF (
     staff_id NUMBER(10) PRIMARY KEY,
     full_name VARCHAR2(100),
@@ -47,12 +49,14 @@ CREATE TABLE STAFF (
 );
 
 **INTERACTION_TYPES Table**
+
 CREATE TABLE INTERACTION_TYPES (
     type_id NUMBER(10) PRIMARY KEY,
     type_name VARCHAR2(50)
 );
 
 **INTERACTIONS Table**
+
 CREATE TABLE INTERACTIONS (
     interaction_id NUMBER(10) PRIMARY KEY,
     client_id NUMBER(10) REFERENCES CLIENTS(client_id),
@@ -65,6 +69,7 @@ CREATE TABLE INTERACTIONS (
 );
 
 **FOLLOWUP_ACTIONS Table**
+
 CREATE TABLE FOLLOWUP_ACTIONS (
     followup_id NUMBER(10) PRIMARY KEY,
     interaction_id NUMBER(10) REFERENCES INTERACTIONS(interaction_id),
@@ -76,14 +81,23 @@ CREATE TABLE FOLLOWUP_ACTIONS (
 
 **CLIENTS**
 INSERT INTO CLIENTS VALUES (1, 'Alice Johnson', 'alice.johnson@example.com', '0788123456', 'Acme Corp', TO_DATE('2025-01-15','YYYY-MM-DD'));
+
 INSERT INTO CLIENTS VALUES (2, 'Bob Smith', 'bob.smith@example.com', '0788234567', 'Beta LLC', TO_DATE('2025-02-20','YYYY-MM-DD'));
+
 INSERT INTO CLIENTS VALUES (3, 'Carol Lee', 'carol.lee@example.com', '0788345678', 'Gamma Inc', TO_DATE('2025-03-10','YYYY-MM-DD'));
+
 INSERT INTO CLIENTS VALUES (4, 'David Kim', 'david.kim@example.com', '0788456789', 'Delta Ltd', TO_DATE('2025-04-05','YYYY-MM-DD'));
+
 INSERT INTO CLIENTS VALUES (5, 'Eva Brown', 'eva.brown@example.com', '0788567890', 'Epsilon Co', TO_DATE('2025-05-12','YYYY-MM-DD'));
+
 INSERT INTO CLIENTS VALUES (6, 'Frank Moore', 'frank.moore@example.com', NULL, 'Zeta Corp', TO_DATE('2025-06-01','YYYY-MM-DD'));
+
 INSERT INTO CLIENTS VALUES (7, 'Grace Hall', NULL, '0788678901', 'Eta LLC', TO_DATE('2025-07-18','YYYY-MM-DD'));
+
 INSERT INTO CLIENTS VALUES (8, 'Henry Adams', 'henry.adams@example.com', '0788789012', 'Theta Inc', NULL);
+
 INSERT INTO CLIENTS VALUES (9, 'Isla White', 'isla.white@example.com', '0788890123', 'Iota Ltd', TO_DATE('2025-09-09','YYYY-MM-DD'));
+
 INSERT INTO CLIENTS VALUES (10,'Jack Black','jack.black@example.com','0788901234','Kappa Co', TO_DATE('2025-10-01','YYYY-MM-DD'));
 
 **STAFF**
