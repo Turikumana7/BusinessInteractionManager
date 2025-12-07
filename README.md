@@ -26,9 +26,9 @@ Manual tracking of client interactions causes delays, missed follow-ups, and wea
 
 
 ## CREATE/INSERT scripts + data validation
-###tables
+### tables
 
--- CLIENTS Table
+ CLIENTS Table
 CREATE TABLE CLIENTS (
     client_id NUMBER(10) PRIMARY KEY,
     full_name VARCHAR2(100),
@@ -38,7 +38,7 @@ CREATE TABLE CLIENTS (
     created_at DATE
 );
 
--- STAFF Table
+**STAFF Table**
 CREATE TABLE STAFF (
     staff_id NUMBER(10) PRIMARY KEY,
     full_name VARCHAR2(100),
@@ -46,13 +46,13 @@ CREATE TABLE STAFF (
     email VARCHAR2(100)
 );
 
--- INTERACTION_TYPES Table
+**INTERACTION_TYPES Table**
 CREATE TABLE INTERACTION_TYPES (
     type_id NUMBER(10) PRIMARY KEY,
     type_name VARCHAR2(50)
 );
 
--- INTERACTIONS Table
+**INTERACTIONS Table**
 CREATE TABLE INTERACTIONS (
     interaction_id NUMBER(10) PRIMARY KEY,
     client_id NUMBER(10) REFERENCES CLIENTS(client_id),
@@ -64,7 +64,7 @@ CREATE TABLE INTERACTIONS (
     next_followup DATE
 );
 
--- FOLLOWUP_ACTIONS Table
+**FOLLOWUP_ACTIONS Table**
 CREATE TABLE FOLLOWUP_ACTIONS (
     followup_id NUMBER(10) PRIMARY KEY,
     interaction_id NUMBER(10) REFERENCES INTERACTIONS(interaction_id),
@@ -72,9 +72,9 @@ CREATE TABLE FOLLOWUP_ACTIONS (
     status VARCHAR2(50),
     notes VARCHAR2(300)
 );
-###INSERT
+## INSERT
 
--- CLIENTS
+**CLIENTS**
 INSERT INTO CLIENTS VALUES (1, 'Alice Johnson', 'alice.johnson@example.com', '0788123456', 'Acme Corp', TO_DATE('2025-01-15','YYYY-MM-DD'));
 INSERT INTO CLIENTS VALUES (2, 'Bob Smith', 'bob.smith@example.com', '0788234567', 'Beta LLC', TO_DATE('2025-02-20','YYYY-MM-DD'));
 INSERT INTO CLIENTS VALUES (3, 'Carol Lee', 'carol.lee@example.com', '0788345678', 'Gamma Inc', TO_DATE('2025-03-10','YYYY-MM-DD'));
@@ -86,7 +86,7 @@ INSERT INTO CLIENTS VALUES (8, 'Henry Adams', 'henry.adams@example.com', '078878
 INSERT INTO CLIENTS VALUES (9, 'Isla White', 'isla.white@example.com', '0788890123', 'Iota Ltd', TO_DATE('2025-09-09','YYYY-MM-DD'));
 INSERT INTO CLIENTS VALUES (10,'Jack Black','jack.black@example.com','0788901234','Kappa Co', TO_DATE('2025-10-01','YYYY-MM-DD'));
 
--- STAFF
+**STAFF**
 INSERT INTO STAFF VALUES (1, 'Claude Monday', 'Manager', 'claude.monday@example.com');
 INSERT INTO STAFF VALUES (2, 'Emma Watson', 'Sales', 'emma.watson@example.com');
 INSERT INTO STAFF VALUES (3, 'Liam Neeson', 'Support', 'liam.neeson@example.com');
@@ -98,7 +98,7 @@ INSERT INTO STAFF VALUES (8, 'Ava Martinez', 'Support', 'ava.martinez@example.co
 INSERT INTO STAFF VALUES (9, 'Ethan Thomas', 'Sales', 'ethan.thomas@example.com');
 INSERT INTO STAFF VALUES (10,'Isabella Garcia','Support','isabella.garcia@example.com');
 
--- INTERACTION_TYPES
+**INTERACTION_TYPES**
 INSERT INTO INTERACTION_TYPES VALUES (1, 'Call');
 INSERT INTO INTERACTION_TYPES VALUES (2, 'Email');
 INSERT INTO INTERACTION_TYPES VALUES (3, 'Meeting');
@@ -110,7 +110,7 @@ INSERT INTO INTERACTION_TYPES VALUES (8, 'Support Ticket');
 INSERT INTO INTERACTION_TYPES VALUES (9, 'Onboarding');
 INSERT INTO INTERACTION_TYPES VALUES (10,'Renewal');
 
--- INTERACTIONS
+**INTERACTIONS**
 INSERT INTO INTERACTIONS VALUES (1, 1, 1, 1, TO_DATE('2025-11-01','YYYY-MM-DD'),'Initial call with client','Send proposal', TO_DATE('2025-11-10','YYYY-MM-DD'));
 INSERT INTO INTERACTIONS VALUES (2, 2, 2, 2, TO_DATE('2025-11-02','YYYY-MM-DD'),'Follow-up email','Schedule demo', TO_DATE('2025-11-12','YYYY-MM-DD'));
 INSERT INTO INTERACTIONS VALUES (3, 3, 3, 3, TO_DATE('2025-11-03','YYYY-MM-DD'),'In-person meeting','Send contract', TO_DATE('2025-11-15','YYYY-MM-DD'));
@@ -122,7 +122,8 @@ INSERT INTO INTERACTIONS VALUES (8, 8, 8, 8, TO_DATE('2025-11-08','YYYY-MM-DD'),
 INSERT INTO INTERACTIONS VALUES (9, 9, 9, 9, TO_DATE('2025-11-09','YYYY-MM-DD'),'Onboarding session','Complete setup', TO_DATE('2025-11-26','YYYY-MM-DD'));
 INSERT INTO INTERACTIONS VALUES (10,10,10,10,TO_DATE('2025-11-10','YYYY-MM-DD'),'Contract renewal','Sign new contract', TO_DATE('2025-11-30','YYYY-MM-DD'));
 
--- FOLLOWUP_ACTIONS
+**FOLLOWUP_ACTIONS**
+
 INSERT INTO FOLLOWUP_ACTIONS VALUES (1,1,TO_DATE('2025-11-11','YYYY-MM-DD'),'Pending','Waiting for client response');
 INSERT INTO FOLLOWUP_ACTIONS VALUES (2,2,TO_DATE('2025-11-13','YYYY-MM-DD'),'Completed','Demo scheduled successfully');
 INSERT INTO FOLLOWUP_ACTIONS VALUES (3,3,TO_DATE('2025-11-16','YYYY-MM-DD'),'Pending','Contract not yet signed');
@@ -135,6 +136,9 @@ INSERT INTO FOLLOWUP_ACTIONS VALUES (9,9,TO_DATE('2025-11-27','YYYY-MM-DD'),'Pen
 INSERT INTO FOLLOWUP_ACTIONS VALUES (10,10,TO_DATE('2025-12-01','YYYY-MM-DD'),'Pending','Contract pending client signature');
 
 
+## SAMPLE DATA
+
+<img width="1366" height="768" alt="Screenshot (41)" src="https://github.com/user-attachments/assets/2dd65699-9600-4826-ad65-20ac7a7c4882" />
 
 
 
