@@ -1,4 +1,4 @@
-[CREATE PLUGGABLE DATABASE .sql](https://github.com/user-attachments/files/24016501/CREATE.PLUGGABLE.DATABASE.sql)# Business Interaction Manager (BIM)
+# Business Interaction Manager (BIM)
 
 **Student:** Turikumana Jean Claude  
 **Student ID:** 26989  
