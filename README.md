@@ -80,6 +80,7 @@ CREATE TABLE FOLLOWUP_ACTIONS (
 ## INSERT
 
 **CLIENTS**
+
 INSERT INTO CLIENTS VALUES (1, 'Alice Johnson', 'alice.johnson@example.com', '0788123456', 'Acme Corp', TO_DATE('2025-01-15','YYYY-MM-DD'));
 
 INSERT INTO CLIENTS VALUES (2, 'Bob Smith', 'bob.smith@example.com', '0788234567', 'Beta LLC', TO_DATE('2025-02-20','YYYY-MM-DD'));
@@ -210,6 +211,112 @@ INSERT INTO FOLLOWUP_ACTIONS VALUES (10,10,TO_DATE('2025-12-01','YYYY-MM-DD'),'P
 | FOLLOWUP_ACTIONS | FOLLOWUP_ID | NUMBER(10) | PK | Follow-up steps |
 | HOLIDAYS | HOLIDAY_DATE | DATE | UNIQUE | Restricted dates |
 | AUDIT_LOG | AUDIT_ID | NUMBER | PK | Audit records |
+
+**Validate Email**
+
+CREATE OR REPLACE FUNCTION validate_email (
+    p_email IN VARCHAR2
+) RETURN BOOLEAN
+IS
+BEGIN
+    RETURN REGEXP_LIKE(p_email, '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
+END;
+/
+
+**Calculate Total Interactions for a Client**
+
+CREATE OR REPLACE FUNCTION count_interactions (
+    p_client_id IN NUMBER
+) RETURN NUMBER
+IS
+    v_total NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_total
+    FROM interactions
+    WHERE client_id = p_client_id;
+
+    RETURN v_total;
+END;
+/
+
+**Lookup Next Follow-up Date**
+
+CREATE OR REPLACE FUNCTION get_next_followup (
+    p_interaction_id IN NUMBER
+) RETURN DATE
+IS
+    v_date DATE;
+BEGIN
+    SELECT next_followup
+    INTO v_date
+    FROM interactions
+    WHERE interaction_id = p_interaction_id;
+
+    RETURN v_date;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN NULL;
+END;
+/
+
+
+**Function TEST 1 CHECKING EMAIL**
+
+DECLARE
+    v_result BOOLEAN;
+BEGIN
+    v_result := validate_email('invalid_email');
+    IF v_result THEN
+        DBMS_OUTPUT.PUT_LINE('VALID EMAIL');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('INVALID EMAIL');
+    END IF;
+END;
+/
+
+**Function TEST 1 CHECKING NUMBER OF interactions**
+
+DECLARE
+    v_total NUMBER;
+BEGIN
+    v_total := count_interactions(1);
+    DBMS_OUTPUT.PUT_LINE('Total Interactions = ' || v_total);
+END;
+/
+
+**Function TEST 1 CHECKING get next followup**
+
+
+DECLARE
+    v_date DATE;
+BEGIN
+    v_date := get_next_followup(10);
+
+    IF v_date IS NULL THEN
+        DBMS_OUTPUT.PUT_LINE('No follow-up found.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Next follow-up: ' || TO_CHAR(v_date, 'YYYY-MM-DD'));
+    END IF;
+END;
+/
+##OUTPUTS
+1.<img width="1366" height="768" alt="Screenshot (53)" src="https://github.com/user-attachments/assets/846a2a6d-7e41-4402-8bf6-81da581da4f5" />
+
+2.<img width="1366" height="768" alt="Screenshot (54)" src="https://github.com/user-attachments/assets/d0790f8c-c2e4-4682-9200-bf50a41a4988" />
+
+3.
+<img width="1366" height="768" alt="Screenshot (55)" src="https://github.com/user-attachments/assets/077bbf06-4787-4c1a-b879-7f9c7a7e3a79" />
+
+
+
+
+
+
+
+
+
+
 
 - Full SQL script: `BusinessInteractionManager_full.sql`
 - Presentation: `/presentation/mon_26989_claude_BIM_presentation.pptx`
