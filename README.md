@@ -1,9 +1,9 @@
-# Business Interaction Manager (BIM)
+[CREATE PLUGGABLE DATABASE .sql](https://github.com/user-attachments/files/24016501/CREATE.PLUGGABLE.DATABASE.sql)# Business Interaction Manager (BIM)
 
 **Student:** Turikumana Jean Claude  
 **Student ID:** 26989  
-**Group:** MONDAY  
-**Date:** December 2025
+**Group:** MONDAY   
+**Date:** 1 December 2025
 
 ## Project Overview
 This project implements an Oracle PL/SQL-driven Business Interaction Manager with:
@@ -20,23 +20,37 @@ Manual tracking of client interactions causes delays, missed follow-ups, and wea
 - Maintain comprehensive audit logs
 - Provide BI analytics (window functions, KPIs)
 
-## Quick Start
-1. Run `BusinessInteractionManager_full.sql` in your PDB.
-2. Verify tables and sample data in SQL Developer.
-3. Execute provided test blocks in `/docs/TestResults.md`.
-4. Review presentation `/presentation/mon_26989_claude_BIM_presentation.pptx`.
+## Business process modeling with diagram
 
-## Links
+<img width="1024" height="1536" alt="Diagram" src="https://github.com/user-attachments/assets/08d8aea0-b9e7-47f0-813c-002b207856b4" />
+
+
+## Database creation Oracle PDB + configuration scripts
+
+CREATE PLUGGABLE DATABASE Mon_26989_Claude_BusinessInteractionManager_DB
+  2  ADMIN USER Claude_Admin IDENTIFIED BY Claude
+  3  FILE_NAME_CONVERT = (
+  4    'C:\APP\BELLO\PRODUCT\21C\ORADATA\XE\PDBSEED\',
+  5    'C:\APP\BELLO\PRODUCT\21C\ORADATA\XE\Mon_26989_Claude_BusinessInteractionManager_DB\'
+  6  );
+  
+   ALTER PLUGGABLE DATABASE Mon_26989_Claude_BusinessInteractionManager_DB OPEN;
+   ALTER PLUGGABLE DATABASE Mon_26989_Claude_BusinessInteractionManager_DB SAVE STATE;
+   
+
+
 - Full SQL script: `BusinessInteractionManager_full.sql`
 - Presentation: `/presentation/mon_26989_claude_BIM_presentation.pptx`
 - BI queries: `/BI/dashboard_queries.sql`
 
 ## Screenshots (placeholders in /docs)
 - ER diagram: `/docs/ERD.png`
-- SQL Developer structure: `/docs/sql_developer_structure.png`
+- SQL Developer structure:
+  
 - Sample data: `/docs/sample_data.png`
 - Procedures/triggers editor: `/docs/procedure_trigger.png`
 - Audit log entries: `/docs/audit_log.png`
+- 
 
 ## Data Dictionary (sample)
 | Table | Column | Type | Constraints | Purpose |
