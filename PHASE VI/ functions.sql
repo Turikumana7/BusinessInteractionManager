@@ -45,3 +45,44 @@ EXCEPTION
         RETURN NULL;
 END;
 /
+
+
+-----Function TEST 1 CHECKING EMAIL
+
+DECLARE
+    v_result BOOLEAN;
+BEGIN
+    v_result := validate_email('invalid_email');
+    IF v_result THEN
+        DBMS_OUTPUT.PUT_LINE('VALID EMAIL');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('INVALID EMAIL');
+    END IF;
+END;
+/
+
+-----Function TEST 1 CHECKING NUMBER OF interactions
+
+DECLARE
+    v_total NUMBER;
+BEGIN
+    v_total := count_interactions(1);
+    DBMS_OUTPUT.PUT_LINE('Total Interactions = ' || v_total);
+END;
+/
+
+-----Function TEST 1 CHECKING get next followup
+
+
+DECLARE
+    v_date DATE;
+BEGIN
+    v_date := get_next_followup(10);
+
+    IF v_date IS NULL THEN
+        DBMS_OUTPUT.PUT_LINE('No follow-up found.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Next follow-up: ' || TO_CHAR(v_date, 'YYYY-MM-DD'));
+    END IF;
+END;
+/
