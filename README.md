@@ -212,6 +212,8 @@ INSERT INTO FOLLOWUP_ACTIONS VALUES (10,10,TO_DATE('2025-12-01','YYYY-MM-DD'),'P
 | HOLIDAYS | HOLIDAY_DATE | DATE | UNIQUE | Restricted dates |
 | AUDIT_LOG | AUDIT_ID | NUMBER | PK | Audit records |
 
+##FUNCTIONS
+
 **Validate Email**
 
 CREATE OR REPLACE FUNCTION validate_email (
@@ -301,6 +303,7 @@ BEGIN
 END;
 /
 ##OUTPUTS
+
 1.<img width="1366" height="768" alt="Screenshot (53)" src="https://github.com/user-attachments/assets/846a2a6d-7e41-4402-8bf6-81da581da4f5" />
 
 2.<img width="1366" height="768" alt="Screenshot (54)" src="https://github.com/user-attachments/assets/d0790f8c-c2e4-4682-9200-bf50a41a4988" />
@@ -310,8 +313,233 @@ END;
 
 
 
+## Procedure 
+
+**ADD CLIENt**
+
+CREATE OR REPLACE PROCEDURE add_client (
+    p_full_name   IN  VARCHAR2,
+    p_email       IN  VARCHAR2,
+    p_phone       IN  VARCHAR2,
+    p_company     IN  VARCHAR2,
+    p_client_id   OUT NUMBER
+)
+IS
+    email_invalid EXCEPTION;
+BEGIN
+    -- Validate email format
+    IF NOT validate_email(p_email) THEN
+        RAISE email_invalid;
+    END IF;
+
+    -- Insert client
+    INSERT INTO clients (client_id, full_name, email, phone, company, created_at)
+    VALUES (clients_seq.NEXTVAL, p_full_name, p_email, p_phone, p_company, SYSDATE)
+    RETURNING client_id INTO p_client_id;
+
+EXCEPTION
+    WHEN email_invalid THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Invalid email format.');
+    WHEN DUP_VAL_ON_INDEX THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Client already exists.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Error adding client: ' || SQLERRM);
+END;
+/
 
 
+**update**
+
+CREATE OR REPLACE PROCEDURE update_client_phone (
+    p_client_id IN NUMBER,
+    p_new_phone IN VARCHAR2
+)
+IS
+BEGIN
+    UPDATE clients
+    SET phone = p_new_phone
+    WHERE client_id = p_client_id;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20010, 'Client ID not found.');
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20011, 'Error updating phone: ' || SQLERRM);
+END;
+/
+
+
+
+**Procedure: DELETE_FOLLOWUP (DELETE + IN)**
+
+CREATE OR REPLACE PROCEDURE delete_followup (
+    p_followup_id IN NUMBER
+)
+IS
+BEGIN
+    DELETE FROM followup_actions
+    WHERE followup_id = p_followup_id;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20030, 'Follow-up not found.');
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20031, 'Error deleting follow-up: ' || SQLERRM);
+END;
+/
+
+
+**TESTING ADD_CLIENT**
+
+DECLARE
+    v_id NUMBER;
+BEGIN
+    add_client(
+        p_full_name => 'Alice Green',
+        p_email     => 'alice.green@gmail.com',
+        p_phone     => '0788001122',
+        p_company   => 'GreenTech',
+        p_client_id => v_id
+    );
+
+    DBMS_OUTPUT.put_line('Client Created, ID = ' || v_id);
+END;
+/
+
+
+
+**TESTING update_client_phone**
+
+BEGIN
+    update_client_phone(1, '0788888999');
+    DBMS_OUTPUT.put_line('Phone updated successfully.');
+END;
+/
+
+ 
+ 
+**TESTING DELETE_FOLLOWUP (DELETE + IN)**
+ 
+ BEGIN
+    delete_followup(5);
+    DBMS_OUTPUT.put_line('Follow-up deleted.');
+END;
+/
+
+##OUTPUTS
+
+<img width="1366" height="768" alt="Screenshot (60)" src="https://github.com/user-attachments/assets/1126b122-e50f-4699-988f-beb936e5658f" />
+
+ 
+ 
+ <img width="1366" height="768" alt="Screenshot (61)" src="https://github.com/user-attachments/assets/02744231-8b56-416d-bd28-45d1fdddd7de" />
+
+
+##Cursor
+
+--Explicit Cursor Test
+--This will print ALL 10 records you inserted.
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    CURSOR c_interactions IS
+        SELECT interaction_id, client_id, next_followup
+        FROM interactions
+        ORDER BY next_followup;
+
+    v_row c_interactions%ROWTYPE;
+BEGIN
+    OPEN c_interactions;
+
+    LOOP
+        FETCH c_interactions INTO v_row;
+        EXIT WHEN c_interactions%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE(
+              'Interaction ID: ' || v_row.interaction_id
+           || ' | Client ID: ' || v_row.client_id
+           || ' | Follow-Up: ' || TO_CHAR(v_row.next_followup,'DD-MON-YYYY')
+        );
+    END LOOP;
+
+    CLOSE c_interactions;
+END;
+/
+
+
+
+--Cursor for UPCOMING Follow-ups (only future dates)
+--This uses SYSDATE < NEXT_FOLLOWUP, perfect for your table.
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    CURSOR c_upcoming IS
+        SELECT interaction_id, client_id, next_followup
+        FROM interactions
+        WHERE next_followup >= SYSDATE
+        ORDER BY next_followup;
+
+    v_data c_upcoming%ROWTYPE;
+BEGIN
+    OPEN c_upcoming;
+
+    LOOP
+        FETCH c_upcoming INTO v_data;
+        EXIT WHEN c_upcoming%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE(
+            'UPCOMING → Interaction ' || v_data.interaction_id ||
+            ' for Client ' || v_data.client_id ||
+            ' on ' || TO_CHAR(v_data.next_followup,'DD-MON-YYYY')
+        );
+    END LOOP;
+
+    CLOSE c_upcoming;
+END;
+/
+--my dates are (10–30 Nov 2025) means  i can change date to see who is next
+
+
+
+--Bulk Collect Cursor Test ( 10 records)
+--Loads them all into memory and prints them.
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    TYPE t_list IS TABLE OF interactions%ROWTYPE;
+    v_list t_list;
+BEGIN
+    SELECT *
+    BULK COLLECT INTO v_list
+    FROM interactions
+    ORDER BY next_followup;
+
+    DBMS_OUTPUT.PUT_LINE('TOTAL ROWS: ' || v_list.COUNT);
+
+    FOR i IN 1 .. v_list.COUNT LOOP
+        DBMS_OUTPUT.PUT_LINE(
+            'Bulk → Interaction ' || v_list(i).interaction_id ||
+            ' | Client ' || v_list(i).client_id ||
+            ' | Next: ' || TO_CHAR(v_list(i).next_followup,'DD-MON-YYYY')
+        );
+    END LOOP;
+END;
+/
+
+##OUTPUTS
+1
+<img width="1366" height="768" alt="Screenshot (71)" src="https://github.com/user-attachments/assets/415c8da0-09a1-4cf2-bf3e-354b292d2b17" />
+2
+<img width="1366" height="768" alt="Screenshot (72)" src="https://github.com/user-attachments/assets/52051708-85aa-449a-be45-e71aad6a461a" />
+3
+<img width="1366" height="768" alt="Screenshot (73)" src="https://github.com/user-attachments/assets/e27270eb-ceb8-4d23-8ef1-105967428e3a" />
 
 
 
