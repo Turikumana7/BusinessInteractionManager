@@ -579,6 +579,179 @@ FROM interactions;
 3
 <img width="1366" height="768" alt="Screenshot (77)" src="https://github.com/user-attachments/assets/3959a873-b433-44de-8490-a330150c5043" />
 
+## TRIGGER
+
+---COMPOUND SECURITY TRIGGER
+
+CREATE OR REPLACE TRIGGER trg_interactions_security
+FOR INSERT OR UPDATE OR DELETE ON interactions
+COMPOUND TRIGGER
+
+    v_allowed BOOLEAN;
+
+BEFORE STATEMENT IS
+BEGIN
+    v_allowed := check_restrictions;
+
+    IF NOT v_allowed THEN
+        log_action(
+            p_table     => 'INTERACTIONS',
+            p_operation => 'BLOCKED',
+            p_status    => 'DENIED',
+            p_pk_value  => 'N/A',
+            p_error     => 'OPERATION BLOCKED: Weekdays and public holidays not allowed.'
+        );
+
+        RAISE_APPLICATION_ERROR(
+            -20999,
+            'SECURITY VIOLATION: Changes allowed only on weekends.'
+        );
+    END IF;
+END BEFORE STATEMENT;
+
+END trg_interactions_security;
+/
+
+## HOLIDAY
+
+-----HOLIDAY MANAGEMENT TABLE
+
+CREATE TABLE holidays (
+    holiday_id     NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    holiday_date   DATE NOT NULL UNIQUE,
+    description    VARCHAR2(200)
+);
+
+-- insert
+
+INSERT INTO holidays (holiday_date, description)
+VALUES (ADD_MONTHS(TRUNC(SYSDATE,'MM'),1), 'Month Opening Day');
+
+INSERT INTO holidays (holiday_date, description)
+VALUES (ADD_MONTHS(TRUNC(SYSDATE,'MM'),1) + 5, 'Public Celebration Day');
+
+CREATE OR REPLACE FUNCTION check_restrictions RETURN BOOLEAN
+IS
+    v_day     VARCHAR2(10);
+    v_count   NUMBER;
+BEGIN
+    -- Get weekday
+    v_day := TO_CHAR(SYSDATE, 'DY','NLS_DATE_LANGUAGE=ENGLISH');
+
+    -- 1. Block weekdays (Mon-Fri)
+    IF v_day IN ('MON','TUE','WED','THU','FRI') THEN
+        RETURN FALSE;
+    END IF;
+
+    -- 2. Block Public Holidays (upcoming month only)
+    SELECT COUNT(*) INTO v_count
+    FROM holidays
+    WHERE holiday_date = TRUNC(SYSDATE);
+
+    IF v_count > 0 THEN
+        RETURN FALSE;
+    END IF;
+
+    RETURN TRUE; -- Weekend allowed
+END;
+/
+
+## audit
+
+CREATE TABLE audit_log (
+    audit_id       NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    table_name     VARCHAR2(50),
+    operation_type VARCHAR2(10),
+    user_name      VARCHAR2(50),
+    attempt_time   DATE DEFAULT SYSDATE,
+    status         VARCHAR2(20),
+    error_message  VARCHAR2(400),
+    pk_value       VARCHAR2(50)
+);
+
+---audit_log
+CREATE OR REPLACE FUNCTION log_action (
+    p_table      VARCHAR2,
+    p_operation  VARCHAR2,
+    p_status     VARCHAR2,
+    p_pk_value   VARCHAR2,
+    p_error      VARCHAR2 DEFAULT NULL
+) RETURN NUMBER
+IS
+    v_id NUMBER;
+BEGIN
+    INSERT INTO audit_log (table_name, operation_type, user_name, status, error_message, pk_value)
+    VALUES (p_table, p_operation, USER, p_status, p_error, p_pk_value)
+    RETURNING audit_id INTO v_id;
+
+    RETURN v_id;
+END;
+/
+
+CREATE OR REPLACE TRIGGER trg_interactions_audit
+AFTER INSERT OR UPDATE OR DELETE ON interactions
+FOR EACH ROW
+BEGIN
+    log_action(
+        p_table     => 'INTERACTIONS',
+        p_operation => CASE 
+                           WHEN INSERTING THEN 'INSERT'
+                           WHEN UPDATING THEN 'UPDATE'
+                           WHEN DELETING THEN 'DELETE'
+                       END,
+        p_status    => 'SUCCESS',
+        p_pk_value  => NVL(:NEW.interaction_id, :OLD.interaction_id)
+    );
+END;
+/
+
+## TEST Trigger
+
+--TEST 1: Trigger blocks INSERT on weekday (DENIED)
+--Run on Monday–Friday:
+
+INSERT INTO interactions (interaction_id, client_id, staff_id, type_id, summary)
+VALUES (999, 1, 1, 1, 'Weekday attempt');
+
+--? Raises error
+--? Logged as DENIED
+
+
+--TEST 2: Trigger ALLOWS INSERT on weekend (ALLOWED)
+--Run on Saturday or Sunday:
+
+INSERT INTO interactions (interaction_id, client_id, staff_id, type_id, summary)
+VALUES (1000, 1, 1, 1, 'Weekend allowed');
+
+--? Insert succeeds
+--? Logged as SUCCESS
+
+
+
+--TEST 3: Trigger blocks on PUBLIC HOLIDAY
+--Set system date or use a holiday entry for today:
+
+INSERT INTO interactions (interaction_id, client_id, staff_id, type_id, summary)
+VALUES (2000, 1, 1, 1, 'Holiday attempt');
+--? DENIED
+--? Logged with holiday violation
+
+
+
+--TEST 4: View audit log
+SELECT *
+FROM audit_log
+ORDER BY attempt_time DESC;
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -601,12 +774,6 @@ KPIs:
 - Pending follow-ups
 - Number of denied operations (security)
 - Average follow-up turnaround
-
-Stakeholders:
-- Management, Support Leads, Compliance
-
-Reporting frequency:
-- Daily (audit), Weekly (operational KPIs), Monthly (executive summary)
 
 ---
 
