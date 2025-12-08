@@ -1,44 +1,90 @@
----- Explicit Cursor � List All Upcoming Follow-Ups
+--Explicit Cursor Test
+--This will print ALL 10 records you inserted.
+
+SET SERVEROUTPUT ON;
 
 DECLARE
-    CURSOR c_followups IS
+    CURSOR c_interactions IS
+        SELECT interaction_id, client_id, next_followup
+        FROM interactions
+        ORDER BY next_followup;
+
+    v_row c_interactions%ROWTYPE;
+BEGIN
+    OPEN c_interactions;
+
+    LOOP
+        FETCH c_interactions INTO v_row;
+        EXIT WHEN c_interactions%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE(
+              'Interaction ID: ' || v_row.interaction_id
+           || ' | Client ID: ' || v_row.client_id
+           || ' | Follow-Up: ' || TO_CHAR(v_row.next_followup,'DD-MON-YYYY')
+        );
+    END LOOP;
+
+    CLOSE c_interactions;
+END;
+/
+
+
+
+--Cursor for UPCOMING Follow-ups (only future dates)
+--This uses SYSDATE < NEXT_FOLLOWUP, perfect for your table.
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    CURSOR c_upcoming IS
         SELECT interaction_id, client_id, next_followup
         FROM interactions
         WHERE next_followup >= SYSDATE
         ORDER BY next_followup;
 
-    v_row c_followups%ROWTYPE;
+    v_data c_upcoming%ROWTYPE;
 BEGIN
-    OPEN c_followups;
+    OPEN c_upcoming;
 
     LOOP
-        FETCH c_followups INTO v_row;
-        EXIT WHEN c_followups%NOTFOUND;
+        FETCH c_upcoming INTO v_data;
+        EXIT WHEN c_upcoming%NOTFOUND;
 
         DBMS_OUTPUT.PUT_LINE(
-            'Interaction ' || v_row.interaction_id ||
-            ' for client ' || v_row.client_id ||
-            ' due on ' || v_row.next_followup
+            'UPCOMING → Interaction ' || v_data.interaction_id ||
+            ' for Client ' || v_data.client_id ||
+            ' on ' || TO_CHAR(v_data.next_followup,'DD-MON-YYYY')
         );
     END LOOP;
 
-    CLOSE c_followups;
+    CLOSE c_upcoming;
 END;
 /
+--my dates are (10–30 Nov 2025) means  i can change date to see who is next
 
-----Bulk Collect Cursor
+
+
+--Bulk Collect Cursor Test ( 10 records)
+--Loads them all into memory and prints them.
+
+SET SERVEROUTPUT ON;
 
 DECLARE
-    TYPE t_interactions IS TABLE OF interactions%ROWTYPE;
-    v_list t_interactions;
+    TYPE t_list IS TABLE OF interactions%ROWTYPE;
+    v_list t_list;
 BEGIN
-    SELECT * BULK COLLECT INTO v_list
+    SELECT *
+    BULK COLLECT INTO v_list
     FROM interactions
-    WHERE next_followup <= SYSDATE + 7;
+    ORDER BY next_followup;
 
-    FOR i IN 1..v_list.COUNT LOOP
+    DBMS_OUTPUT.PUT_LINE('TOTAL ROWS: ' || v_list.COUNT);
+
+    FOR i IN 1 .. v_list.COUNT LOOP
         DBMS_OUTPUT.PUT_LINE(
-            'Upcoming follow-up: ' || v_list(i).interaction_id
+            'Bulk → Interaction ' || v_list(i).interaction_id ||
+            ' | Client ' || v_list(i).client_id ||
+            ' | Next: ' || TO_CHAR(v_list(i).next_followup,'DD-MON-YYYY')
         );
     END LOOP;
 END;
