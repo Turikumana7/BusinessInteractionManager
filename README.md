@@ -212,7 +212,7 @@ INSERT INTO FOLLOWUP_ACTIONS VALUES (10,10,TO_DATE('2025-12-01','YYYY-MM-DD'),'P
 | HOLIDAYS | HOLIDAY_DATE | DATE | UNIQUE | Restricted dates |
 | AUDIT_LOG | AUDIT_ID | NUMBER | PK | Audit records |
 
-##FUNCTIONS
+## FUNCTIONS
 
 **Validate Email**
 
@@ -302,7 +302,8 @@ BEGIN
     END IF;
 END;
 /
-##OUTPUTS
+
+## OUTPUTS
 
 1.<img width="1366" height="768" alt="Screenshot (53)" src="https://github.com/user-attachments/assets/846a2a6d-7e41-4402-8bf6-81da581da4f5" />
 
@@ -430,7 +431,7 @@ END;
 END;
 /
 
-##OUTPUTS
+## OUTPUTS
 
 <img width="1366" height="768" alt="Screenshot (60)" src="https://github.com/user-attachments/assets/1126b122-e50f-4699-988f-beb936e5658f" />
 
@@ -439,7 +440,7 @@ END;
  <img width="1366" height="768" alt="Screenshot (61)" src="https://github.com/user-attachments/assets/02744231-8b56-416d-bd28-45d1fdddd7de" />
 
 
-##Cursor
+## Cursor
 
 --Explicit Cursor Test
 --This will print ALL 10 records you inserted.
@@ -533,7 +534,7 @@ BEGIN
 END;
 /
 
-##OUTPUTS
+## OUTPUTS
 1
 <img width="1366" height="768" alt="Screenshot (71)" src="https://github.com/user-attachments/assets/415c8da0-09a1-4cf2-bf3e-354b292d2b17" />
 2
@@ -541,6 +542,42 @@ END;
 3
 <img width="1366" height="768" alt="Screenshot (73)" src="https://github.com/user-attachments/assets/e27270eb-ceb8-4d23-8ef1-105967428e3a" />
 
+
+## Window Functions
+
+--Ranking Staff by # of Interactions
+
+SELECT staff_id, 
+       COUNT(*) AS total_interactions,
+       RANK() OVER (ORDER BY COUNT(*) DESC) AS interaction_rank
+FROM interactions
+GROUP BY staff_id;
+
+---Compare Interaction Dates – LAG/LEAD
+
+SELECT interaction_id,
+       interaction_date,
+       LAG(interaction_date) OVER (ORDER BY interaction_date) AS previous_interaction,
+       LEAD(interaction_date) OVER (ORDER BY interaction_date) AS next_interaction
+FROM interactions;
+
+---ROW_NUMBER() per Client
+
+SELECT client_id, interaction_id,
+       ROW_NUMBER() OVER (PARTITION BY client_id ORDER BY interaction_date) AS seq_num
+FROM interactions;
+
+
+##OUTPUT 
+
+1 
+<img width="1366" height="768" alt="Screenshot (75)" src="https://github.com/user-attachments/assets/14682c54-384f-409d-a2d8-2d59e517018d" />
+
+2
+<img width="1366" height="768" alt="Screenshot (76)" src="https://github.com/user-attachments/assets/68a42105-44e1-4c74-af89-3b84e02d88f2" />
+
+3
+<img width="1366" height="768" alt="Screenshot (77)" src="https://github.com/user-attachments/assets/3959a873-b433-44de-8490-a330150c5043" />
 
 
 
