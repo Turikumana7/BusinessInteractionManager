@@ -195,10 +195,11 @@ INSERT INTO FOLLOWUP_ACTIONS VALUES (10,10,TO_DATE('2025-12-01','YYYY-MM-DD'),'P
 <img width="1366" height="768" alt="Screenshot (41)" src="https://github.com/user-attachments/assets/2dd65699-9600-4826-ad65-20ac7a7c4882" />
 
 
-##ERD DIAGRAM
+## ERD of all table
 
-<img width="1536" height="1024" alt="ERD" src="https://github.com/user-attachments/assets/594def8f-9320-4515-8609-e70509ca3cd7" />
 
+
+<img width="3306" height="5361" alt="deepseek_mermaid_20251209_543349" src="https://github.com/user-attachments/assets/abad07b5-cf20-4b1b-b894-9fc82b55b05d" />
 
 
 ## Data Dictionary (sample)
